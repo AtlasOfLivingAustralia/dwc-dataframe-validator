@@ -1,0 +1,6 @@
+id,occurrenceStatus,basisOfRecord
+1,present,observation
+2,present,observation
+3,present,observation
+4,present,observation
+5,present,observation
