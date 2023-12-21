@@ -179,3 +179,13 @@ geodetic_datum_vocabulary = {
     'EPSG:32759',
     'EPSG:32760'
 }
+
+taxon_terms = {
+    "Australia": ["scientificName","rank","species","genus","family","order","classs","phylum","kingdom"],
+    "ALA": ["scientificName","rank","species","genus","family","order","classs","phylum","kingdom"]
+}
+
+name_matching_terms = {
+    "Australia": ["scientificName","scientificNameAuthorship","rank","species","genus","family","order","classs","phylum","kingdom"],
+    "ALA": ["scientificName","scientificNameAuthorship","rank","species","genus","family","order","classs","phylum","kingdom"]
+}

@@ -7,3 +7,4 @@ python-dwca-reader~=0.16.0
 pylint==3.0.2
 autopep8==2.0.4
 jsonpickle==3.0.2
+requests~=2.31.0
