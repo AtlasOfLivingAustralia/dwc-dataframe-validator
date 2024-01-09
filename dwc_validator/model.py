@@ -47,12 +47,21 @@ class TaxonReport:
 
     def __init__(self,
                  has_invalid_taxa: bool = False,
-                 unrecognised_taxa: list = [],
-                 suggested_names: dict = {}
+                 unrecognised_taxa: dict = {},
                  ):
         self.has_invalid_taxa = has_invalid_taxa
         self.unrecognised_taxa = unrecognised_taxa
-        self.suggested_names = suggested_names
+
+class DateTimeReport:
+    """
+    """
+
+    def __init__(self,
+                 has_invalid_datetime: bool=False,
+                 num_invalid_datetime: int=0
+                 ):
+        self.has_invalid_datetime = has_invalid_datetime
+        self.num_invalid_datetime = num_invalid_datetime
 
 # pylint: disable=too-few-public-methods,too-many-instance-attributes)
 class DFValidationReport:

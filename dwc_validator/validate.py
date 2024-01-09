@@ -114,7 +114,7 @@ def validate_occurrence_dataframe(
 
     # validate coordinates - create warning if out of range
     coordinates_report = generate_coordinates_report(dataframe, warnings)
-
+ 
     # check recordedBy, recordedByID - create warning if missing
     valid_recorded_by_count = validate_required_fields(
         dataframe, ['recordedBy', 'recordedByID'])
@@ -142,7 +142,6 @@ def validate_occurrence_dataframe(
     else:
         taxonomy_report = None
 
-    ### TODO: add number of missing required DwCA columns and list of which are missing
     return DFValidationReport(
         record_type="Occurrence",
         record_count=len(dataframe),
@@ -212,11 +211,21 @@ def validate_required_fields(dataframe: DataFrame, required_fields) -> int:
     """
     Count the number of records with at least one of the required fields populated.
 
-    Parameters:
-    - df: pandas DataFrame
+    AB Note:
+        Shouldn't this be checking if all required fields have data entries for each occurrence?
 
-    Returns:
-    - Count of records with at least one of the required fields populated.
+    Parameters
+    -----------
+        dataframe : pandas DataFrame
+            the dataframe you want to validate
+        required_fields : list
+            a list of fields required by the DwCA standard and/or the chosen submission atlas
+
+    Returns
+    --------
+        Count of records with at least one of the required fields populated.
+        AB note: 
+            I believe this should check for ALL required fields, not just one.
     """
     # Check if all required fields are present in the DataFrame
     if not any(field in dataframe.columns for field in required_fields):
@@ -242,11 +251,16 @@ def generate_coordinates_report(
     """
     Validate 'decimalLatitude' and 'decimalLongitude' columns in a pandas DataFrame.
 
-    Parameters:
-    - dataframe: pandas DataFrame
+    Parameters
+    -----------
+        dataframe: pandas DataFrame
+            the dataframe you are looking to validate
+        warnings: list
+            a list of warnings 
 
-    Returns:
-    - True if all values are valid, False otherwise.
+    Returns
+    ---------
+        An object of type ``CoordinatesReport``
     """
     # Check if 'decimalLatitude' and 'decimalLongitude' columns exist
     if 'decimalLatitude' not in dataframe.columns or 'decimalLongitude' not in dataframe.columns:
@@ -289,12 +303,23 @@ def check_id_fields(
         dataframe: DataFrame,
         errors: List[str]) -> int:
     """
-    Check that the id fields are populated for all rows and that the values are unique.
-    :param id_fields: the fields used to specify a unique identifier for the record
-    :param id_term: the actual darwin core term used for the id field e.g. occurrenceID, catalogNumber
-    :param dataframe: the data frame to validate
-    :param errors: the list of errors to append to
-    :return: records that are missing an id field
+    Check that the id fields [WHAT ARE THESE AMANDA] are populated for all rows and that the values are unique.
+    If ...
+
+    Parameters
+    -----------
+        id_fields : list
+            the fields used to specify a unique identifier for the record (either or any of occurrenceID, catalogNumber, SOMETHING ELSE)
+        id_term : str/list?
+            the actual darwin core term used for the id field e.g. occurrenceID, catalogNumber
+        dataframe: pandas.DataFrame
+            the data frame to validate
+        errors: list
+            the list of errors to append to
+
+    Returns
+    --------
+        [An object of class `pandas.DataFrame`???] records that are missing an id field
     """
 
     if not id_fields:
@@ -339,14 +364,20 @@ def create_vocabulary_report(
     """
     Count the number of records with a case-insensitive value in the specified field matching a controlled vocabulary.
 
-    Parameters:
-    - dataframe: pandas DataFrame
-    - field: str, the field/column in the DataFrame to check
-    - controlled_vocabulary: list or set, the controlled vocabulary to compare against
+    Parameters
+    -----------
+        dataframe : ``pandas`` DataFrame
+            dataframe to validate for DwC terms
+        field : str
+            the field/column in the DataFrame to check
+        controlled_vocabulary : list or set
+            a list of the controlled vocabulary (in this case DwC terms) to compare against
 
-    Returns:
-    - Count of records with a case-insensitive value in the specified field matching the controlled vocabulary.
+    Returns
+    --------
+        Count of records with a case-insensitive value in the specified field matching the controlled vocabulary.
     """
+
     # Check if the specified field is present in the DataFrame
     if field not in dataframe.columns:
         logging.error("Error: Field '%s' not found in the DataFrame.", field)
@@ -395,9 +426,17 @@ def create_vocabulary_report(
 def validate_numeric_fields(dataframe: DataFrame, warnings: List[str]):
     """
     Check that the numeric fields have numeric values.
-    :param dataframe: the data frame to validate
-    :param warnings: the list of warnings to append to
-    :return: the list of warnings
+
+    Parameters
+    -----------
+        dataframe: `pandas` dataFrame 
+            the data frame to validate
+        warnings : list 
+            the list of warnings to append to
+
+    Returns
+    --------
+        a list of warnings pertaining to your numeric fields
     """
     numeric_fields = [
         'decimalLatitude',
@@ -447,7 +486,23 @@ def create_taxonomy_report(dataframe: DataFrame,
                            change_names_to_backbone: bool = True
                            ) -> TaxonReport:
     """
-    Check if taxon is valid for chosen backbone
+    Check if the given taxon in a data frame are valid for chosen atlas backbone.
+
+    Parameters
+    ----------
+        dataframe : `pandas` dataframe
+            the data frame to validate
+        num_matches : int
+            the maximum number of possible matches to return when searching for matches in chosen atlas
+        include_synonyms : logical
+            an option to include any synonyms of the identified taxon in your search
+        change_names_to_backbone: logical
+            not sure if I need this yet
+
+    Returns
+    -------
+        An object of class `TaxonReport` that givs information on invalid and unrecognised taxa, as well as
+        suggested names for taxon that don't match the taxonomic backbone you are checking.
     """
     ### TODO: add configuration for atlas later
     # check for scientificName, as users should check that they have the correct column names
@@ -487,63 +542,50 @@ def create_taxonomy_report(dataframe: DataFrame,
 
     # check for homonyms - if there are any, then print them out to the user so the user can disambiguate the names
     df_verification = pd.DataFrame(verification_list)
-    df_isnull = df_verification.loc[df_verification['issues'].astype(str).str.contains("homonym",case=False,na=False)]
-    list_invalid_taxon = []
+    invalid_taxon = df_verification.loc[df_verification['issues'].astype(str).str.contains("homonym",case=False,na=False)]
+    invalid_taxon_dict = {}
     matches = {}
-    if not df_isnull.empty:
+    if not invalid_taxon.empty:
         has_invalid_taxa=True
-        invalid_taxon = df_verification.loc[df_verification['issues'].astype(str).str.contains("homonym",case=False,na=False)]
         matches = {x: [] for x in invalid_taxon['scientificName']}
         for name in invalid_taxon['scientificName']:
-            print(name)
-            print()
             response = requests.get("https://api.ala.org.au/namematching/api/autocomplete?q={}&max={}&includeSynonyms={}".format("%20".join(name.split(" ")),num_matches,str(include_synonyms).lower()))
-            # print(response.text)
-            # data = {x: [] for x in name_matching_terms["Australia"]} ## REMOVE WHEN HAVE CAPABILILTY FOR ATLASES
             response_json = response.json()
             list_names = []
             if response_json:
-                if "synonymMatch" in response_json[0]:
-                    print("if loop")
-                    for entry in response_json[0]["synonymMatch"]:
-                        print(entry)
-                        print()
-                        # print(pd.DataFrame(entry))
-                        # list_names.append(entry["name"])
+                for match in response_json:
+                    if "synonymMatch" in match:
+                        for entry in match["synonymMatch"]:
+                            if entry['name'] == name:
+                                df_verification.loc[df_verification.scientificName == name, 'issues'] = 'noIssues'
+                                break
+                    else:
+                        ### TODO: other errors??
+                        if response_json[0]['name'] == name:
+                            df_verification.loc[df_verification.scientificName == name, 'issues'] = 'noIssues'
+                        else:
+                            if name not in invalid_taxon_dict.keys():
+                                invalid_taxon_dict[name] = [match['name']]
+                            else:
+                                invalid_taxon_dict[name].append(match['name'])
+            else:
+                # perform one more check
+                response_single = requests.get("https://api.ala.org.au/namematching/api/searchByClassification?scientificName={}&rank=species".format("%20".join(name.split(" "))))
+                # response_single = requests.get("https://api.ala.org.au/namematching/api/search?q={}&limit=5".format("%20".join(name.split(" "))))
+                response_json_single = response_single.json()
+                if response_json_single['success']:
+                    if response_json_single["scientificName"] == name:
+                        df_verification.loc[df_verification.scientificName == name, 'issues'] = 'noIssues'
+                    else:
+                        invalid_taxon_dict[name] = response_json_single["scientificName"]
                 else:
-                    for entry in response_json:
-                        print(entry[["scientificName","rank"]])
-                        print(entry['cl'])
-                        print()
+                    print("probably a homonym")
+                    print(response_json_single)
                     import sys
                     sys.exit()
-                    # for entry in response_json[0]["synonymMatch"]:
-                    #     print(entry)
-                    #     # print(pd.DataFrame(entry))
-                    #     # list_names.append(entry["name"])
-            else:
-                print(response_json)
-                response_single = requests.get("https://api.ala.org.au/namematching/api/search?q={}".format("%20".join(name.split(" "))))
-                response_json_single = response_single.json()
-                print("else loop")
-                print(response_json_single)
-                import sys
-                sys.exit()
-                names_df = pd.DataFrame()
-                if response_json_single['success']:
-                    for item in name_matching_terms["Australia"]: ## REMOVE WHEN HAVE CAPABILILTY FOR ATLASES
-                        if item in response_json_single:
-                            data[item].append(response_json_single[item])
-                        else:
-                            data[item].append(None)
-            # import sys
-            # sys.exit()
-            # names_df = pd.DataFrame(data)
             matches[name] = list_names
-        list_invalid_taxon = list(invalid_taxon['scientificName'])
 
     return TaxonReport(
         has_invalid_taxa = has_invalid_taxa,
-        unrecognised_taxa = list_invalid_taxon, 
-        suggested_names = matches
+        unrecognised_taxa = invalid_taxon_dict
         )
