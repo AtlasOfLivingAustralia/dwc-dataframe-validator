@@ -2,6 +2,37 @@
 Vocabularies for Darwin Core terms.
 """
 
+test_columns_for_spatial_vocab = [
+    "decimalLatitude", 
+    "decimalLongitude", 
+    "geodeticDatum",
+    "coordinateUncertaintyInMeters"
+]
+
+required_taxonomy_columns = [
+    "scientificName",
+    "vernacularName",
+    "genus",
+    "family",
+    "order",
+    "classs",
+    "phylum",
+    "kingdom"
+]
+
+required_columns_spatial_vocab = [
+    "decimalLatitude", 
+    "decimalLongitude", 
+    "geodeticDatum",
+    "coordinateUncertaintyInMeters",
+]
+
+required_columns_other = [
+    "basisOfRecord",
+    "scientificName"
+    "eventDate"
+]
+
 # Vocabulary for Darwin Core term "basisOfRecord"
 basis_of_record_vocabulary = {
     'PreservedSpecimen',

@@ -12,6 +12,8 @@ from pandas import DataFrame
 from dwc_validator.breakdown import field_populated_counts
 from dwc_validator.model import DFValidationReport, CoordinatesReport, VocabularyReport, TaxonReport
 from dwc_validator.vocab import basis_of_record_vocabulary, geodetic_datum_vocabulary, taxon_terms, name_matching_terms
+from dwc_validator.vocab import required_columns_spatial_vocab,required_columns_other
+from dwc_validator.vocab import required_taxonomy_columns
 
 def validate_occurrence_dataframe(
         dataframe: DataFrame,
@@ -34,62 +36,57 @@ def validate_occurrence_dataframe(
     # check numeric fields have numeric values
     validate_numeric_fields(dataframe, warnings)
 
-    # check taxonomic information supplied - create warning if missing
-    valid_taxon_count = validate_required_fields(
-        dataframe,
-        [
-            'scientificName',
-            'scientificNameID',
-            'taxonID',
-            'genus',
-            'family',
-            'order',
-            'class',
-            'phylum',
-            'kingdom'])
-
     # check for required columns
     all_required_columns_present = False
     missing_columns=[]
 
-    # check for required DwCA terms
-    '''
-    AB NOTES:
-        required fields according to https://support.ala.org.au/support/solutions/articles/6000261427-sharing-a-dataset-with-the-ala
-    
-        1. Unique record identifier
-            - occurrenceID OR catalogNumber OR recordNumber
-        2. basisOfRecord
-        3. scientificName
-        4. eventDate
-        5. Location information
-            - decimalLatitude AND decimalLongitude AND
-              geodeticdatum AND coordinateUncertaintyInMeters
-    '''
-    ### TODO: refactor below code and write function for this
-    if any(map(lambda v: v in ["decimalLatitude", "decimalLongitude", "geodeticDatum","coordinateUncertaintyInMeters"], list(dataframe.columns))):
-        validate_required_fields(dataframe, ["basisOfRecord",
-                                             "scientificName"
-                                             "eventDate",
-                                             "basisOfRecord",
-                                             "decimalLatitude", 
-                                             "decimalLongitude", 
-                                             "geodeticDatum",
-                                             "coordinateUncertaintyInMeters"])
-        check_missing_fields = set(list(dataframe.columns)).issuperset(["decimalLatitude", "decimalLongitude", "geodeticDatum","coordinateUncertaintyInMeters"])
+    # check taxonomic information supplied - create warning if missing
+    # required_vocabs = [required_taxonomy_columns,required_columns_spatial_vocab,required_columns_other]
+
+    # check for taxonomic vocabulary
+    taxonomy_report = None
+    #for vocab_list in required_vocabs:
+    if any(map(lambda v: v in required_taxonomy_columns, list(dataframe.columns))):
+
+        # check to see if we are missing any columns
+        check_missing_fields = set(list(dataframe.columns)).issuperset(required_taxonomy_columns)
         
+        # check for any missing required fields
         if not check_missing_fields:
-            missing_columns = list(set(["decimalLatitude", "decimalLongitude", "geodeticDatum","coordinateUncertaintyInMeters"]).difference(list(dataframe.columns)))
+            missing_columns = list(set(required_taxonomy_columns).difference(set(dataframe.columns)))
+            taxonomy_report = None
+        else:
+            if "scientificName" in list(dataframe.columns):
+                # is this vocabs_reports or is this a separate thing?
+                taxonomy_report = create_taxonomy_report(
+                    dataframe=dataframe
+                )
+            else:
+                taxonomy_report = None
+
+    # check for required DwCA terms
+    # required fields according to https://support.ala.org.au/support/solutions/articles/6000261427-sharing-a-dataset-with-the-ala
+    ### TODO: refactor below code and write function for this
+    if any(map(lambda v: v in required_columns_spatial_vocab, list(dataframe.columns))):
+        
+        # check to see if we are missing any columns
+        check_missing_fields = set(list(dataframe.columns)).issuperset(required_columns_spatial_vocab)
+        
+        # check for any missing required fields
+        if not check_missing_fields:
+            missing_columns = list(set(required_columns_spatial_vocab).difference(set(dataframe.columns)))
+        else:
+            valid_data = validate_required_fields(dataframe,required_columns_spatial_vocab)
+
     else:
-        validate_required_fields(dataframe, ["basisOfRecord",
-                                             "scientificName"
-                                             "eventDate"])
-        check_missing_fields = list(set(list(dataframe.columns)) - set(["basisOfRecord","scientificName","eventDate"]))
+        check_missing_fields = set(list(dataframe.columns)).issuperset(required_columns_other)
         if type(check_missing_fields) is not bool and len(check_missing_fields) > 0:
-            missing_columns = list(set(["basisOfRecord","scientificName","eventDate"]).difference(list(dataframe.columns)))
+            missing_columns = list(set(required_columns_other).difference(set(dataframe.columns)))
             missing_columns.append("MAYBE: decimalLatitude")
             missing_columns.append("MAYBE: decimalLongitude")
-        
+        else:
+            valid_data = validate_required_fields(dataframe,required_columns_other)        
+
     # check that a unique ID is present for occurrences
     any_present=False
     for entry in ["occurrenceID", "catalogNumber", "recordNumber"]:
@@ -109,15 +106,14 @@ def validate_occurrence_dataframe(
         all_required_columns_present = True
 
     # check date information supplied - create warning if missing
-    valid_temporal_count = validate_required_fields(
-        dataframe, ['eventDate', 'year', 'month', 'day'])
+    # valid_temporal_count = validate_required_fields(dataframe, ['eventDate'])
+    # valid_temporal_count = 0
 
     # validate coordinates - create warning if out of range
     coordinates_report = generate_coordinates_report(dataframe, warnings)
- 
-    # check recordedBy, recordedByID - create warning if missing
-    valid_recorded_by_count = validate_required_fields(
-        dataframe, ['recordedBy', 'recordedByID'])
+
+    # validate datetime column
+    datetime_report = create_datetime_report(dataframe)
 
     # check basic compliance with vocabs - basisOfRecord, geodeticDatum, etc.
     vocabs_reports = [
@@ -134,29 +130,19 @@ def validate_occurrence_dataframe(
             geodetic_datum_vocabulary)
         )
 
-    if "scientificName" in list(dataframe.columns):
-        # is this vocabs_reports or is this a separate thing?
-        taxonomy_report = create_taxonomy_report(
-            dataframe=dataframe
-        )
-    else:
-        taxonomy_report = None
-
     return DFValidationReport(
         record_type="Occurrence",
         record_count=len(dataframe),
         record_error_count=int(record_error_count),
         errors=errors,
         warnings=warnings,
-        coordinates_report=coordinates_report,
-        records_with_taxonomy_count=int(valid_taxon_count),
-        records_with_temporal_count=int(valid_temporal_count),
-        records_with_recorded_by_count=int(valid_recorded_by_count),
-        taxonomy_report = taxonomy_report,
-        column_counts=field_populated_counts(dataframe),
-        vocab_reports=vocabs_reports,
         all_required_columns_present=all_required_columns_present,
         missing_columns=missing_columns,
+        column_counts=field_populated_counts(dataframe),
+        records_with_temporal_count=0, #change this
+        coordinates_report=coordinates_report,
+        taxonomy_report = taxonomy_report,
+        vocab_reports=vocabs_reports,
     )
 
 
@@ -229,20 +215,16 @@ def validate_required_fields(dataframe: DataFrame, required_fields) -> int:
     """
     # Check if all required fields are present in the DataFrame
     if not any(field in dataframe.columns for field in required_fields):
-        logging.error("Error: One or more required fields are missing.")
         return 0
 
+    # check only fields that are reqired
     present_fields = filter(lambda x: x in dataframe.columns, required_fields)
 
-    # Count the number of records with at least one of the required fields
-    # populated
-    at_least_one_populated_count = dataframe[present_fields].notnull().any(
-        axis=1).sum()
-
-    # Print the count and return it
-    logging.info(
-        "Count of records with at least one of the required fields populated: %s", at_least_one_populated_count)
-    return at_least_one_populated_count
+    # get the number of rows containing non-null values
+    required_fields_populated_count = dataframe[present_fields].count(axis=0)
+    
+    # Return count for each column
+    return required_fields_populated_count
 
 
 def generate_coordinates_report(
@@ -264,8 +246,8 @@ def generate_coordinates_report(
     """
     # Check if 'decimalLatitude' and 'decimalLongitude' columns exist
     if 'decimalLatitude' not in dataframe.columns or 'decimalLongitude' not in dataframe.columns:
-        logging.error(
-            "Error: 'decimalLatitude' or 'decimalLongitude' columns not found.")
+        # logging.error(
+        #     "Error: 'decimalLatitude' or 'decimalLongitude' columns not found.")
         return CoordinatesReport(False, 0, 0)
 
     # get a count of fields populated
@@ -380,7 +362,7 @@ def create_vocabulary_report(
 
     # Check if the specified field is present in the DataFrame
     if field not in dataframe.columns:
-        logging.error("Error: Field '%s' not found in the DataFrame.", field)
+        # logging.error("Error: Field '%s' not found in the DataFrame.", field)
         return VocabularyReport(field, False, 0, 0, [])
 
     # Convert both field values and controlled vocabulary to lowercase (or
@@ -502,9 +484,9 @@ def create_taxonomy_report(dataframe: DataFrame,
         suggested names for taxon that don't match the taxonomic backbone you are checking.
     """
     ### TODO: add configuration for atlas later
-    # check for scientificName, as users should check that they have the correct column names
+    # check for scientificName, return None if it is not in the column names
     if "scientificName" not in list(dataframe.columns):
-        raise ValueError("Before checking species names, ensure all your column names comply to DwCA standard.  scientificName is the correct title for species")
+        return None
     
     # make a list of all scientific names in the dataframe
     scientific_names_list = list(set(dataframe["scientificName"]))
@@ -516,10 +498,8 @@ def create_taxonomy_report(dataframe: DataFrame,
     payload = [{"scientificName": name} for name in scientific_names_list]
     response = requests.request("POST","https://api.ala.org.au/namematching/api/searchAllByClassification",data=json.dumps(payload))
     response_json = response.json()
-    invalid_taxon_dict = {x: [] for x in taxon_terms["Australia"]}
-    invalid_taxon_dict["original name"] = []
-    invalid_taxon_dict["proposed match(es)"] = []
-    invalid_taxon_dict["rank of proposed match(es)"] = []
+    terms = ["original name"] + ["proposed match(es)"] + ["rank of proposed match(es)"] + taxon_terms["Australia"]
+    invalid_taxon_dict = {x: [] for x in terms}
     
     # loop over list of names and ensure we have gotten all the issues - might need to do single name search
     # to ensure we get everything
@@ -529,7 +509,7 @@ def create_taxonomy_report(dataframe: DataFrame,
         if item_index is None:
             # make this better
             has_invalid_taxa = True
-            response_single = requests.get("https://api.ala.org.au/namematching/api/autocomplete?q={}&max={}&includeSynonyms={}".format("%20".join(item.split(" ")),5,str(True).lower()))
+            response_single = requests.get("https://api.ala.org.au/namematching/api/autocomplete?q={}&max={}&includeSynonyms={}".format("%20".join(item.split(" ")),num_matches,str(include_synonyms).lower()))
             response_json_single = response_single.json()
             if response_json_single:
                 if response_json_single[0]['rank'] is not None:
@@ -554,14 +534,60 @@ def create_taxonomy_report(dataframe: DataFrame,
                                     invalid_taxon_dict[term].append(synonym['cl'][term])
                             else:
                                 invalid_taxon_dict[term].append(None)
+                        else:
+                            print("synonym doesn't match")
             else:
-                print("There is a case we haven't considered yet")
-                print()
-                import sys
-                sys.exit()
+                # try one last time to find a match
+                response_search = requests.get("https://api.ala.org.au/namematching/api/search?q={}".format("%20".join(item.split(" "))))
+                response_search_json = response_search.json()            
+                if response_search_json['success']:
+                    invalid_taxon_dict["original name"].append(item)
+                    invalid_taxon_dict["proposed match(es)"].append(response_search_json['scientificName'])
+                    invalid_taxon_dict["rank of proposed match(es)"].append(response_search_json['rank'])
+                    for term in taxon_terms["Australia"]:
+                        if term in response_search_json:
+                            invalid_taxon_dict[term].append(response_search_json[term])
+                        else:
+                            invalid_taxon_dict[term].append(None)
+                else:
+                    print("last ditch search did not work")
+                    print(response_search_json)
+                    import sys
+                    sys.exit()
     
+    valid_taxon_count = 999
+    if not has_invalid_taxa:
+        # now 
+        valid_data = validate_required_fields(dataframe,required_taxonomy_columns)
+        for entry in valid_data.items():
+            if entry[0] != "vernacularName":
+                if entry[1] < dataframe.shape[0]:
+                    if entry[1] < valid_taxon_count:
+                        valid_taxon_count = entry[1]
+        if dataframe.shape[0] < valid_taxon_count:
+            valid_taxon_count = dataframe.shape[0]
+    else:
+        valid_taxon_count = 0
+
     # return report on taxon
     return TaxonReport(
         has_invalid_taxa = has_invalid_taxa,
-        unrecognised_taxa = invalid_taxon_dict
-        )
+        unrecognised_taxa = invalid_taxon_dict,
+        valid_taxon_count = valid_taxon_count
+    )
+
+def create_datetime_report(dataframe):
+    """
+    Something here
+    """
+
+    # first, check for eventDate
+    if 'eventDate' not in dataframe.columns:
+        return {True,dataframe.shape[0]}
+    
+    event_dates = dataframe['eventDate']
+    print(event_dates)
+    print(event_dates[0])
+    print(type(event_dates[0]))
+    import sys
+    sys.exit()

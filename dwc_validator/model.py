@@ -48,9 +48,11 @@ class TaxonReport:
     def __init__(self,
                  has_invalid_taxa: bool = False,
                  unrecognised_taxa: dict = {},
+                 valid_taxon_count: int = 0
                  ):
         self.has_invalid_taxa = has_invalid_taxa
         self.unrecognised_taxa = unrecognised_taxa
+        self.valid_taxon_count = valid_taxon_count
 
 class DateTimeReport:
     """
@@ -69,6 +71,11 @@ class DFValidationReport:
     A class to represent a validation report for a pandas DataFrame.
     """
 
+    # records_with_recorded_by_count: int,
+    # self.records_with_recorded_by_count = records_with_recorded_by_count
+    # 
+    #                  records_with_taxonomy_count: int,
+    #         self.records_with_taxonomy_count = records_with_taxonomy_count
     # pylint: disable=too-many-arguments
     def __init__(self,
                  record_type: str,
@@ -78,10 +85,8 @@ class DFValidationReport:
                  column_counts: [],
                  record_error_count: int,
                  coordinates_report: Union[CoordinatesReport, None],
-                 records_with_taxonomy_count: int,
                  taxonomy_report: TaxonReport,
                  records_with_temporal_count: int,
-                 records_with_recorded_by_count: int,
                  vocab_reports: List[VocabularyReport] = None,
                  all_required_columns_present: bool = False,
                  missing_columns: list = [],
@@ -93,10 +98,8 @@ class DFValidationReport:
         self.coordinates_report = coordinates_report
         self.column_counts = column_counts
         self.record_error_count = record_error_count
-        self.records_with_taxonomy_count = records_with_taxonomy_count
         self.taxonomy_report = taxonomy_report
         self.records_with_temporal_count = records_with_temporal_count
-        self.records_with_recorded_by_count = records_with_recorded_by_count
         self.vocab_reports = vocab_reports
         self.all_required_columns_present = all_required_columns_present
         self.missing_columns = missing_columns
