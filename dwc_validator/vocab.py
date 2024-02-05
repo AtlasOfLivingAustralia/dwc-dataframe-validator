@@ -9,6 +9,12 @@ test_columns_for_spatial_vocab = [
     "coordinateUncertaintyInMeters"
 ]
 
+unique_id_vocab = [
+    "occurrenceID",
+    "catalogNumber", 
+    "recordNumber"
+]
+
 required_taxonomy_columns = [
     "scientificName",
     "vernacularName",
@@ -29,7 +35,7 @@ required_columns_spatial_vocab = [
 
 required_columns_other = [
     "basisOfRecord",
-    "scientificName"
+    "scientificName",
     "eventDate"
 ]
 

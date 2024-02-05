@@ -90,6 +90,8 @@ class DFValidationReport:
                  vocab_reports: List[VocabularyReport] = None,
                  all_required_columns_present: bool = False,
                  missing_columns: list = [],
+                 datetime_report: DateTimeReport = None,
+                 incorrect_dwc_terms: list = []
                  ):
         self.record_type = record_type
         self.record_count = record_count
@@ -103,7 +105,8 @@ class DFValidationReport:
         self.vocab_reports = vocab_reports
         self.all_required_columns_present = all_required_columns_present
         self.missing_columns = missing_columns
-
+        self.datetime_report = datetime_report
+        self.incorrect_dwc_terms = incorrect_dwc_terms
 
 # pylint: disable=too-few-public-methods
 class DwCAValidationReport:
