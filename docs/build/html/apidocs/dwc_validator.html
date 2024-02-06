@@ -308,8 +308,18 @@ document.write(`
 <span id="dwc-validator-validate-module"></span><h2><code class="docutils literal notranslate"><span class="pre">dwc_validator.validate</span></code> module<a class="headerlink" href="#module-dwc_validator.validate" title="Link to this heading">#</a></h2>
 <p>This module contains functions for validating a pandas DataFrame containing Darwin Core data.</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="dwc_validator.validate.add_errors">
+<span class="sig-prename descclassname"><span class="pre">dwc_validator.validate.</span></span><span class="sig-name descname"><span class="pre">add_errors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dwc_validator.validate.add_errors" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dwc_validator.validate.add_warnings">
+<span class="sig-prename descclassname"><span class="pre">dwc_validator.validate.</span></span><span class="sig-name descname"><span class="pre">add_warnings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">warning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dwc_validator.validate.add_warnings" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="dwc_validator.validate.check_id_fields">
-<span class="sig-prename descclassname"><span class="pre">dwc_validator.validate.</span></span><span class="sig-name descname"><span class="pre">check_id_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id_fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_term</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataframe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#dwc_validator.validate.check_id_fields" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">dwc_validator.validate.</span></span><span class="sig-name descname"><span class="pre">check_id_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id_fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_term</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataframe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#dwc_validator.validate.check_id_fields" title="Link to this definition">#</a></dt>
 <dd><p>Check that the unique identifier fields are populated for all rows and that the values are unique.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -317,7 +327,6 @@ document.write(`
 <li><p><strong>id_fields</strong> (<code class="docutils literal notranslate"><span class="pre">list</span></code>) – the fields used to specify a unique identifier for the record (either or any of occurrenceID, catalogNumber, recordNumber)</p></li>
 <li><p><strong>id_term</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>/<code class="docutils literal notranslate"><span class="pre">list</span></code>) – the actual darwin core term used for the id field e.g. occurrenceID, catalogNumber, recordNumber</p></li>
 <li><p><strong>dataframe</strong> (<code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>) – the data frame to validate</p></li>
-<li><p><strong>errors</strong> (<em>list</em>) – the list of errors to append to</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -386,22 +395,24 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dwc_validator.validate.generate_coordinates_report">
-<span class="sig-prename descclassname"><span class="pre">dwc_validator.validate.</span></span><span class="sig-name descname"><span class="pre">generate_coordinates_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warnings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">CoordinatesReport</span></span></span><a class="headerlink" href="#dwc_validator.validate.generate_coordinates_report" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">dwc_validator.validate.</span></span><span class="sig-name descname"><span class="pre">generate_coordinates_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">CoordinatesReport</span></span></span><a class="headerlink" href="#dwc_validator.validate.generate_coordinates_report" title="Link to this definition">#</a></dt>
 <dd><p>Check that ‘decimalLatitude’ and ‘decimalLongitude’ columns are the correct format and between
 -90° and 90° for latitude, and -180° and 180°
 for longitude.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dataframe</strong> (<code class="docutils literal notranslate"><span class="pre">pandas</span></code> DataFrame) – the dataframe you are looking to validate</p></li>
-<li><p><strong>warnings</strong> (<em>list</em>) – a list of warnings</p></li>
-</ul>
+<dd class="field-odd"><p><strong>dataframe</strong> (<code class="docutils literal notranslate"><span class="pre">pandas</span></code> DataFrame) – the dataframe you are looking to validate</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>An object of type <code class="docutils literal notranslate"><span class="pre">CoordinatesReport</span></code></p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dwc_validator.validate.validate_dwc_terms">
+<span class="sig-prename descclassname"><span class="pre">dwc_validator.validate.</span></span><span class="sig-name descname"><span class="pre">validate_dwc_terms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dwc_validator.validate.validate_dwc_terms" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dwc_validator.validate.validate_event_dataframe">
@@ -414,24 +425,21 @@ Validate a pandas DataFrame containing event data.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dwc_validator.validate.validate_numeric_fields">
-<span class="sig-prename descclassname"><span class="pre">dwc_validator.validate.</span></span><span class="sig-name descname"><span class="pre">validate_numeric_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warnings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dwc_validator.validate.validate_numeric_fields" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">dwc_validator.validate.</span></span><span class="sig-name descname"><span class="pre">validate_numeric_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dwc_validator.validate.validate_numeric_fields" title="Link to this definition">#</a></dt>
 <dd><p>Check that the numeric fields have numeric values.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dataframe</strong> (<cite>pandas</cite> dataFrame) – the data frame to validate</p></li>
-<li><p><strong>warnings</strong> (<em>list</em>) – the list of warnings to append to</p></li>
-</ul>
+<dd class="field-odd"><p><strong>dataframe</strong> (<cite>pandas</cite> dataFrame) – the data frame to validate</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>a list of warnings pertaining to your numeric fields</p>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dwc_validator.validate.validate_occurrence_dataframe">
-<span class="sig-prename descclassname"><span class="pre">dwc_validator.validate.</span></span><span class="sig-name descname"><span class="pre">validate_occurrence_dataframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_term</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DFValidationReport</span></span></span><a class="headerlink" href="#dwc_validator.validate.validate_occurrence_dataframe" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">dwc_validator.validate.</span></span><span class="sig-name descname"><span class="pre">validate_occurrence_dataframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['occurrenceID',</span> <span class="pre">'catalogNumber',</span> <span class="pre">'recordNumber']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_term</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DFValidationReport</span></span></span><a class="headerlink" href="#dwc_validator.validate.validate_occurrence_dataframe" title="Link to this definition">#</a></dt>
 <dd><p>Validates a pandas DataFrame containing occurrence data.  It runs the following checks:</p>
 <ul class="simple">
 <li><p>Checks for columns required by your chosen Atlas; details which ones are missing, if any</p></li>
@@ -463,7 +471,7 @@ Validate a pandas DataFrame containing event data.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dwc_validator.validate.validate_required_fields">
-<span class="sig-prename descclassname"><span class="pre">dwc_validator.validate.</span></span><span class="sig-name descname"><span class="pre">validate_required_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">required_fields</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#dwc_validator.validate.validate_required_fields" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">dwc_validator.validate.</span></span><span class="sig-name descname"><span class="pre">validate_required_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">required_fields</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Series</span></span></span><a class="headerlink" href="#dwc_validator.validate.validate_required_fields" title="Link to this definition">#</a></dt>
 <dd><p>Check that all required fields have data in all rows</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -548,11 +556,14 @@ Validate a pandas DataFrame containing event data.
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-dwc_validator.validate"><code class="docutils literal notranslate"><span class="pre">dwc_validator.validate</span></code> module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dwc_validator.validate.add_errors"><code class="docutils literal notranslate"><span class="pre">add_errors()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dwc_validator.validate.add_warnings"><code class="docutils literal notranslate"><span class="pre">add_warnings()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dwc_validator.validate.check_id_fields"><code class="docutils literal notranslate"><span class="pre">check_id_fields()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dwc_validator.validate.create_datetime_report"><code class="docutils literal notranslate"><span class="pre">create_datetime_report()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dwc_validator.validate.create_taxonomy_report"><code class="docutils literal notranslate"><span class="pre">create_taxonomy_report()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dwc_validator.validate.create_vocabulary_report"><code class="docutils literal notranslate"><span class="pre">create_vocabulary_report()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dwc_validator.validate.generate_coordinates_report"><code class="docutils literal notranslate"><span class="pre">generate_coordinates_report()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dwc_validator.validate.validate_dwc_terms"><code class="docutils literal notranslate"><span class="pre">validate_dwc_terms()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dwc_validator.validate.validate_event_dataframe"><code class="docutils literal notranslate"><span class="pre">validate_event_dataframe()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dwc_validator.validate.validate_numeric_fields"><code class="docutils literal notranslate"><span class="pre">validate_numeric_fields()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dwc_validator.validate.validate_occurrence_dataframe"><code class="docutils literal notranslate"><span class="pre">validate_occurrence_dataframe()</span></code></a></li>
