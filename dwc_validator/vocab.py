@@ -21,7 +21,7 @@ required_taxonomy_columns = [
     "genus",
     "family",
     "order",
-    "classs",
+    "class", #classs
     "phylum",
     "kingdom"
 ]
@@ -33,14 +33,22 @@ required_columns_spatial_vocab = [
     "coordinateUncertaintyInMeters",
 ]
 
-required_columns_other = [
+required_columns_other_occ = [
     "basisOfRecord",
     "scientificName",
     "eventDate"
 ]
 
+### TODO: FIX THIS
+required_columns_other_event = [
+    "basisOfRecord",
+    "scientificName",
+    "eventDate",
+    "eventID"
+]
+
 # Vocabulary for Darwin Core term "basisOfRecord"
-basis_of_record_vocabulary = {
+basis_of_record_vocabulary = [
     'PreservedSpecimen',
     'FossilSpecimen',
     'LivingSpecimen',
@@ -49,7 +57,28 @@ basis_of_record_vocabulary = {
     'Observation',
     'MaterialSample',
     'Occurrence'
-}
+] 
+
+required_multimedia_columns_occ = [
+    "occurrenceID",
+    "identifier"
+]
+
+required_multimedia_columns_event = [
+    "eventID",
+    "occurrenceID",
+    "identifier"
+]
+
+required_emof_columns_event = [
+    "eventID",
+    "occurrenceID",
+    "measurementID",
+    "measurementType",
+    "measurementValue",
+    "measurementUnit",
+    "measurementAccuracy"
+]
 
 # Vocabulary for Darwin Core term "geodeticDatum" - todo replace with an
 # authoritative source

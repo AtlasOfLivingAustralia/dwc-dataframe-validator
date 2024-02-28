@@ -65,6 +65,64 @@ class DateTimeReport:
         self.has_invalid_datetime = has_invalid_datetime
         self.num_invalid_datetime = num_invalid_datetime
 
+class MMValidationReport:
+
+    def __init__(self,
+                 record_count: int,
+                 missing_columns: list,
+                 column_counts: list,
+                 incorrect_dwc_terms: list,
+                 all_required_columns_present: bool
+                 ):
+        
+        self.record_count = record_count
+        self.missing_columns = missing_columns
+        self.column_counts = column_counts
+        self.incorrect_dwc_terms = incorrect_dwc_terms
+        self.all_required_columns_present = all_required_columns_present
+
+class EMOFValidationReport:
+
+    def __init__(self,
+                 record_count: int,
+                 missing_columns: list,
+                 column_counts: list,
+                 incorrect_dwc_terms: list,
+                 all_required_columns_present: bool
+                 ):
+        
+        self.record_count = record_count
+        self.missing_columns = missing_columns
+        self.column_counts = column_counts
+        self.incorrect_dwc_terms = incorrect_dwc_terms
+        self.all_required_columns_present = all_required_columns_present
+
+class EventValidationReport:
+
+    def __init__(self,
+                    record_type: str,
+                    record_count: int,
+                    column_counts: [],
+                    record_error_count: int,
+                    records_with_temporal_count: int,
+                    vocab_reports: List[VocabularyReport] = None,
+                    all_required_columns_present: bool = False,
+                    missing_columns: list = [],
+                    datetime_report: DateTimeReport = None,
+                    incorrect_dwc_terms: list = []
+                    ):
+        self.record_type = record_type
+        self.record_count = record_count
+        self.column_counts = column_counts
+        self.record_error_count = record_error_count
+        self.records_with_temporal_count = records_with_temporal_count
+        self.vocab_reports = vocab_reports
+        self.all_required_columns_present = all_required_columns_present
+        self.missing_columns = missing_columns
+        self.datetime_report = datetime_report
+        self.incorrect_dwc_terms = incorrect_dwc_terms
+
+
 # pylint: disable=too-few-public-methods,too-many-instance-attributes)
 class DFValidationReport:
     """
@@ -80,8 +138,8 @@ class DFValidationReport:
     def __init__(self,
                  record_type: str,
                  record_count: int,
-                 errors: [],
-                 warnings: [],
+                #  errors: [],
+                #  warnings: [],
                  column_counts: [],
                  record_error_count: int,
                  coordinates_report: Union[CoordinatesReport, None],
@@ -95,8 +153,8 @@ class DFValidationReport:
                  ):
         self.record_type = record_type
         self.record_count = record_count
-        self.errors = errors
-        self.warnings = warnings
+        # self.errors = errors
+        # self.warnings = warnings
         self.coordinates_report = coordinates_report
         self.column_counts = column_counts
         self.record_error_count = record_error_count

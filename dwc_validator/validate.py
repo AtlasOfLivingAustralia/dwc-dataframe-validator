@@ -10,35 +10,36 @@ import json
 import pandas as pd
 from pandas import DataFrame
 from dwc_validator.breakdown import field_populated_counts
-from dwc_validator.model import DFValidationReport, CoordinatesReport, VocabularyReport, TaxonReport, DateTimeReport
+from dwc_validator.model import DFValidationReport, CoordinatesReport, VocabularyReport, TaxonReport
+from dwc_validator.model import MMValidationReport,EMOFValidationReport,DateTimeReport,EventValidationReport
 from dwc_validator.vocab import basis_of_record_vocabulary, geodetic_datum_vocabulary, taxon_terms, unique_id_vocab
-from dwc_validator.vocab import required_columns_spatial_vocab,required_columns_other
-from dwc_validator.vocab import required_taxonomy_columns
+from dwc_validator.vocab import required_columns_spatial_vocab,required_columns_other_occ,required_emof_columns_event
+from dwc_validator.vocab import required_taxonomy_columns,required_multimedia_columns_occ,required_multimedia_columns_event
 
 # initialise errors and warnings
 errors = []
 warnings = []
 
 ### TODO: make sure to exclude these from the user
-def add_errors(error=None):
-    if error is not None:
-        global errors
-        errors.append(error)
+# def add_errors(error=None):
+#     if error is not None:
+#         global errors
+#         errors.append(error)
 
-def add_warnings(warning=None):
-    if warning is not None:
-        global warnings
-        warnings.append(warning)
+# def add_warnings(warning=None):
+#     if warning is not None:
+#         global warnings
+#         warnings.append(warning)
 ### ----------------------------------------------
 
 def validate_occurrence_dataframe(
         dataframe: DataFrame,
-        id_fields: List[str] = unique_id_vocab,
-        id_term: str = "") -> DFValidationReport:
+        id_fields: List[str] = unique_id_vocab) -> DFValidationReport:
     """
     Validates a pandas DataFrame containing occurrence data.  It runs the following checks:
 
     - Checks for columns required by your chosen Atlas; details which ones are missing, if any
+    - Checks for column names that are not EventCore compliant
     - Validates any numeric fields you have
     - Checks presence and validity of columns dealing with spatial data
     - Checks for a column denoting unique identifiers for each occurrence
@@ -54,8 +55,6 @@ def validate_occurrence_dataframe(
             dataframe to validate for DwC terms
         id_fields : ``list``
             fields used to specify a unique identifier for the record
-        id_term : actial darwin core term used for the id field, e.g. occurrenceID, catalogNumber
-            a list of the controlled vocabulary (in this case DwC terms) to compare against
 
     Returns
     --------
@@ -70,78 +69,54 @@ def validate_occurrence_dataframe(
     # initialise variables for taxonomy report
     taxonomy_report = None
 
-    # refine this
+    # check for incorrect Darwin Core terms
     incorrect_dwc_terms = validate_dwc_terms(dataframe=dataframe)
     
-    # check for taxonomy columns
-    if any(map(lambda v: v in required_taxonomy_columns, list(dataframe.columns))):
+    # check for missing taxonomic columns
+    taxonomy_missing_columns = check_for_required_columns(dataframe=dataframe,required_list=required_taxonomy_columns)
 
-        # check to see if we are missing any columns
-        check_missing_fields = set(list(dataframe.columns)).issuperset(required_taxonomy_columns)
-        
-        # check for any missing required fields; if required fields are there, create taxonomy report
-        if not check_missing_fields:
-            missing_columns = list(set(required_taxonomy_columns).difference(set(dataframe.columns)))
-            if 'vernacularName' in missing_columns:
-                missing_columns.remove('vernacularName')
-            if 'scientificName' in list(dataframe.columns):
-                taxonomy_report = create_taxonomy_report(
-                    dataframe=dataframe
-                )
-            else:
-                taxonomy_report = None
-        else:
-            if "scientificName" in list(dataframe.columns):
-                taxonomy_report = create_taxonomy_report(
-                    dataframe=dataframe
-                )
-            else:
-                taxonomy_report = None
+    # add missing columns from taxonomy to missing columns
+    if taxonomy_missing_columns is not None:
+
+        # check to see if vernacularName is in missing columns; remove if so as it's not required
+        if 'vernacularName' in taxonomy_missing_columns:
+            taxonomy_missing_columns.remove('vernacularName')
+        for entry in taxonomy_missing_columns:
+            missing_columns.append(entry)
+
+    # check for scientificName - if it is there, generate a taxonomy report
+    if 'scientificName' in list(dataframe.columns):
+        taxonomy_report = create_taxonomy_report(
+            dataframe=dataframe
+        )
     else:
-        req_taxon_cols = list(set(required_taxonomy_columns))
-        req_taxon_cols.remove('vernacularName')
-        missing_columns = req_taxon_cols
+        taxonomy_report = None
 
-    # check for required DwCA terms for spatial data
-    if any(map(lambda v: v in required_columns_spatial_vocab, list(dataframe.columns))):
-        
-        # check to see if we are missing any columns
-        check_missing_fields = set(list(dataframe.columns)).issuperset(required_columns_spatial_vocab)
-        
-        # check for any missing required fields
-        if (not check_missing_fields) or (type(check_missing_fields) is not bool and len(check_missing_fields) > 0):
-            if missing_columns is not None:
-                missing = list(set(required_columns_other).difference(set(dataframe.columns)))
-                for entry in missing:
-                    missing_columns.append(entry)
-            else:
-                missing_columns = list(set(required_columns_other).difference(set(dataframe.columns)))
-        else:
-            valid_data = validate_required_fields(dataframe,required_columns_spatial_vocab)
+    # check for missing taxonomic columns
+    spatial_missing_columns = check_for_required_columns(dataframe=dataframe,required_list=required_columns_spatial_vocab)
 
-    else:
+    # add missing columns from taxonomy to missing columns
+    if spatial_missing_columns is not None:
+        for entry in spatial_missing_columns:
+            missing_columns.append(entry)
 
-        # check to see if there are any missing fields when no spatial data is present
-        check_missing_fields = set(list(dataframe.columns)).issuperset(required_columns_other)
-        
-        # let user know which columns they are missing, if any
-        if (not check_missing_fields) or (type(check_missing_fields) is not bool and len(check_missing_fields) > 0):
-            if missing_columns is not None:
-                missing = list(set(required_columns_other).difference(set(dataframe.columns)))
-                for entry in missing:
-                    missing_columns.append(entry)
-            else:
-                missing_columns = list(set(required_columns_other).difference(set(dataframe.columns)))
-            missing_columns.append("MAYBE: decimalLatitude")
-            missing_columns.append("MAYBE: decimalLongitude")
-        else:
-            valid_data = validate_required_fields(dataframe,required_columns_other)        
+    # check for missing taxonomic columns
+    other_missing_columns = check_for_required_columns(dataframe=dataframe,required_list=required_columns_other_occ)
+
+    if 'decimalLatitude' not in missing_columns and 'decimalLatitude' not in dataframe.columns:
+        missing_columns.append("MAYBE: decimalLatitude")
+        missing_columns.append("MAYBE: decimalLongitude")   
+
+    # add missing columns from taxonomy to missing columns
+    if other_missing_columns is not None:
+        for entry in other_missing_columns:
+            missing_columns.append(entry)
 
     # check id field are fully populated
-    record_error_count = check_id_fields(id_fields = id_fields, id_term = id_term, dataframe=dataframe)
+    record_error_count = check_id_fields(id_fields = id_fields, dataframe=dataframe)
 
     # check numeric fields have numeric values; return any warnings from this check
-    warnings = validate_numeric_fields(dataframe)
+    validate_numeric_fields(dataframe)
 
     # check that a unique ID is present for occurrences
     any_present=False
@@ -193,8 +168,8 @@ def validate_occurrence_dataframe(
         record_type="Occurrence",
         record_count=len(dataframe),
         record_error_count=record_error_count,
-        errors=errors,
-        warnings=warnings,
+        # errors=errors,
+        # warnings=warnings,
         all_required_columns_present=all_required_columns_present,
         missing_columns=missing_columns,
         column_counts=field_populated_counts(dataframe),
@@ -207,53 +182,114 @@ def validate_occurrence_dataframe(
     )
 
 
-def validate_event_dataframe(dataframe: DataFrame) -> DFValidationReport:
+def validate_event_dataframe(dataframe: DataFrame) -> EventValidationReport:
     """
-    TODO: test this
-    Validate a pandas DataFrame containing event data.
-    :param dataframe: the data frame to validate
-    :return:
+    Validates a pandas DataFrame containing event data.  It runs the following checks:
+
+    - FILL THIS OUT AMANDA
+
+    Parameters
+    -----------
+        dataframe : ``pandas`` DataFrame
+            dataframe to validate for DwC terms
+
+    Returns
+    --------
+        An object of type ``EventValidationReport`` that gives you information about your dataframe.  This is partly
+        in JSON format and can be parse by the ``galaxias-python`` package
     """
 
-    # check id field are fully populated
-    record_error_count = check_id_fields(["eventID"], "", dataframe, errors)
+    # check eventID field is fully populated
+    record_error_count = check_id_fields(id_fields = ["eventID"], dataframe=dataframe)
 
-    # check numeric fields have numeric values
+    # check for incorrect dwc terms
+    incorrect_dwc_terms = validate_dwc_terms(dataframe=dataframe)
+
+    # check numeric fields have numeric values; return any warnings from this check
     validate_numeric_fields(dataframe)
 
     # check date information supplied - create warning if missing
-    valid_temporal_count = validate_required_fields(
-        dataframe, ['eventDate', 'year', 'month', 'day'])
+    valid_temporal_count = validate_required_fields(dataframe, ['eventDate'])
 
-    # validate coordinates - create warning if out of range
-    coordinates_report = generate_coordinates_report(dataframe)
-
-    # check recordedBy, recordedByID - create warning if missing
-    valid_recorded_by_count = validate_required_fields(
-        dataframe, ['recordedBy', 'recordedByID'])
-
-    vocabs_reports = [
-        create_vocabulary_report(
-            dataframe, "geodeticDatum", geodetic_datum_vocabulary)
-    ]
-
+    # create a report on the datetime
     datetime_report = create_datetime_report(dataframe=dataframe)
 
-    return DFValidationReport(
+    return EventValidationReport(
         record_type="Event",
         record_count=len(dataframe),
         record_error_count=int(record_error_count),
-        errors=errors,
-        warnings=warnings,
-        coordinates_report=coordinates_report,
-        records_with_taxonomy_count=0,
         records_with_temporal_count=int(valid_temporal_count),
-        records_with_recorded_by_count=int(valid_recorded_by_count),
         column_counts=field_populated_counts(dataframe),
         datetime_report=datetime_report,
-        vocab_reports=vocabs_reports
+        incorrect_dwc_terms=incorrect_dwc_terms
     )
 
+def validate_media_extension(dataframe: DataFrame, data_type: str) -> MMValidationReport:
+    """
+    Validates your multimedia extension.
+
+    Parameters
+    -----------
+        dataframe : ``pandas`` DataFrame
+            dataframe to validate for DwC terms
+        data_type : ``str``
+            type of archive you will be building.  Your choice is between an ``event`` and an ``occurrence``.
+
+    Returns
+    --------
+        An object of type ``MMValidationReport`` that gives you information about your multimedia dataframe.  
+        This is partly in JSON format and can be parsed by the ``galaxias-python`` package
+    """
+    
+    if data_type.lower() == "event" or data_type.lower() == "occurrence":
+        
+        # check for missing columns
+        if data_type.lower() == "event":
+            missing_columns = check_for_required_columns(dataframe=dataframe,required_list=required_multimedia_columns_event)
+        else:
+            missing_columns = check_for_required_columns(dataframe=dataframe,required_list=required_multimedia_columns_occ)
+
+        # check all column names are dwc compliant
+        incorrect_dwc_terms = validate_dwc_terms(dataframe=dataframe)
+
+        # check if all required columns are present
+        if len(missing_columns) == 0:
+            all_required_columns_present = True
+
+        # return report on multimedia
+        return MMValidationReport(
+            missing_columns=missing_columns,
+            incorrect_dwc_terms = incorrect_dwc_terms,
+            record_count=len(dataframe),
+            column_counts=field_populated_counts(dataframe=dataframe),
+            all_required_columns_present=all_required_columns_present
+        )
+    
+    else:
+        raise ValueError("Please provide either \"event\" or \"occurrence\" for your data type.")
+
+def validate_emof_extension(dataframe: DataFrame) -> EMOFValidationReport:
+    """
+    Validates your eMoF extension.
+    """
+
+    # first, check for missing columns
+    missing_columns = check_for_required_columns(dataframe=dataframe,required_list=required_emof_columns_event)
+
+    # check all column names are dwc compliant
+    incorrect_dwc_terms = validate_dwc_terms(dataframe=dataframe)
+
+    # check if all required columns are present
+    if len(missing_columns) == 0:
+        all_required_columns_present = True
+
+    return EMOFValidationReport(
+        record_count = len(dataframe),
+        missing_columns = missing_columns,
+        column_counts = field_populated_counts(dataframe=dataframe),
+        incorrect_dwc_terms = incorrect_dwc_terms,
+        all_required_columns_present=all_required_columns_present
+    )
 
 def validate_required_fields(dataframe: DataFrame, required_fields) -> pd.Series:
     """
@@ -283,6 +319,21 @@ def validate_required_fields(dataframe: DataFrame, required_fields) -> pd.Series
     # Return count for each column
     return required_fields_populated_count
 
+def check_for_required_columns(dataframe: DataFrame, required_list: str) -> pd.Series:
+    """
+    Something here.
+    """
+
+    if any(map(lambda v: v in required_list, list(dataframe.columns))):
+
+        # check to see if we are missing any columns
+        check_missing_fields = set(list(dataframe.columns)).issuperset(required_list)
+        
+        # check for any missing required fields
+        if (not check_missing_fields) or (type(check_missing_fields) is not bool and len(check_missing_fields) > 0):
+            return list(set(required_list).difference(set(dataframe.columns)))
+        else:
+            return []
 
 def generate_coordinates_report(
         dataframe: DataFrame) -> CoordinatesReport:
@@ -322,7 +373,7 @@ def generate_coordinates_report(
         return CoordinatesReport(True,0, 0)
 
     # add to warnings
-    add_warnings("INVALID_OR_OUT_OF_RANGE_COORDINATES")
+    # add_warnings("INVALID_OR_OUT_OF_RANGE_COORDINATES")
     return CoordinatesReport(
         True,
         int(lat_column_non_empty_count - lat_valid_count),
@@ -332,7 +383,6 @@ def generate_coordinates_report(
 
 def check_id_fields(
         id_fields: List[str],
-        id_term: str,
         dataframe: DataFrame) -> int:
     """
     Check that the unique identifier fields are populated for all rows and that the values are unique.
@@ -341,8 +391,6 @@ def check_id_fields(
     -----------
         id_fields : ``list``
             the fields used to specify a unique identifier for the record (either or any of occurrenceID, catalogNumber, recordNumber)
-        id_term : ``str``/``list``
-            the actual darwin core term used for the id field e.g. occurrenceID, catalogNumber, recordNumber
         dataframe: ``pandas.DataFrame``
             the data frame to validate
 
@@ -352,23 +400,23 @@ def check_id_fields(
     """
 
     if not id_fields:
-        add_warnings("Please provide id_fields to check_id_fields")
+        # add_warnings("Please provide id_fields to check_id_fields")
         return dataframe.shape[0]
 
     if any(map(lambda v: v in list(dataframe.columns), id_fields)):
         true_indices = numpy.where(list(map(lambda v: v in list(dataframe.columns), id_fields)))[0]
         if len(true_indices) > 1:
-            add_errors(error="You have multiple id fields.  Please remove one of the following: {}".format(", ".join(id_fields[true_indices])))
+            # add_errors(error="You have multiple id fields.  Please remove one of the following: {}".format(", ".join(id_fields[true_indices])))
             return dataframe.shape[0]
         else:
             id_field_series = dataframe[id_fields[true_indices[0]]]
             if id_field_series.notnull().all():
                 return 0
             else:
-                add_errors("There are missing values in the field {}".format(id_fields[true_indices[0]]))
+                # add_errors("There are missing values in the field {}".format(id_fields[true_indices[0]]))
                 return id_field_series.isna().sum()
     else:
-        add_errors(error="You are missing one of the three id fields: {}".format(", ".join(id_fields)))
+        # add_errors(error="You are missing one of the three id fields: {}".format(", ".join(id_fields)))
         return dataframe.shape[0]
 
 def create_vocabulary_report(
