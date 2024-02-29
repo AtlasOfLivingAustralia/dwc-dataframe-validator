@@ -12,25 +12,10 @@ from pandas import DataFrame
 from dwc_validator.breakdown import field_populated_counts
 from dwc_validator.model import DFValidationReport, CoordinatesReport, VocabularyReport, TaxonReport
 from dwc_validator.model import MMValidationReport,EMOFValidationReport,DateTimeReport,EventValidationReport
-from dwc_validator.vocab import basis_of_record_vocabulary, geodetic_datum_vocabulary, taxon_terms, unique_id_vocab
+from dwc_validator.vocab import basis_of_record_vocabulary, geodetic_datum_vocabulary, taxon_terms, unique_id_vocab,
 from dwc_validator.vocab import required_columns_spatial_vocab,required_columns_other_occ,required_emof_columns_event
 from dwc_validator.vocab import required_taxonomy_columns,required_multimedia_columns_occ,required_multimedia_columns_event
-
-# initialise errors and warnings
-errors = []
-warnings = []
-
-### TODO: make sure to exclude these from the user
-# def add_errors(error=None):
-#     if error is not None:
-#         global errors
-#         errors.append(error)
-
-# def add_warnings(warning=None):
-#     if warning is not None:
-#         global warnings
-#         warnings.append(warning)
-### ----------------------------------------------
+from dwc_validator.vocab import required_columns_event
 
 def validate_occurrence_dataframe(
         dataframe: DataFrame,
@@ -168,8 +153,6 @@ def validate_occurrence_dataframe(
         record_type="Occurrence",
         record_count=len(dataframe),
         record_error_count=record_error_count,
-        # errors=errors,
-        # warnings=warnings,
         all_required_columns_present=all_required_columns_present,
         missing_columns=missing_columns,
         column_counts=field_populated_counts(dataframe),
@@ -181,12 +164,16 @@ def validate_occurrence_dataframe(
         incorrect_dwc_terms=incorrect_dwc_terms
     )
 
-
 def validate_event_dataframe(dataframe: DataFrame) -> EventValidationReport:
     """
     Validates a pandas DataFrame containing event data.  It runs the following checks:
 
-    - FILL THIS OUT AMANDA
+    - Checks for columns required by your chosen Atlas; details which ones are missing, if any
+    - Checks for column names that are not Darwin Core compliant
+    - Validates any numeric fields you have
+    - Checks for a column denoting unique identifiers for each occurrence
+    - Checks that your dates are in the correct format
+    - Checks whether values in required columns are valid
 
     Parameters
     -----------
@@ -201,6 +188,15 @@ def validate_event_dataframe(dataframe: DataFrame) -> EventValidationReport:
 
     # check eventID field is fully populated
     record_error_count = check_id_fields(id_fields = ["eventID"], dataframe=dataframe)
+
+    # check for required columns
+    missing_columns = check_for_required_columns(dataframe=dataframe,required_list=required_columns_event)
+
+    # check if there are any missing columns and assign boolean as appropriate
+    if len(missing_columns) > 0:
+        all_required_columns_present = True
+    else:
+        all_required_columns_present = False
 
     # check for incorrect dwc terms
     incorrect_dwc_terms = validate_dwc_terms(dataframe=dataframe)
@@ -218,6 +214,8 @@ def validate_event_dataframe(dataframe: DataFrame) -> EventValidationReport:
         record_type="Event",
         record_count=len(dataframe),
         record_error_count=int(record_error_count),
+        all_required_columns_present=all_required_columns_present,
+        missing_columns=missing_columns,
         records_with_temporal_count=int(valid_temporal_count),
         column_counts=field_populated_counts(dataframe),
         datetime_report=datetime_report,
@@ -226,7 +224,12 @@ def validate_event_dataframe(dataframe: DataFrame) -> EventValidationReport:
 
 def validate_media_extension(dataframe: DataFrame, data_type: str) -> MMValidationReport:
     """
-    Validates your multimedia extension.
+    Validates a pandas DataFrame containing multimedia data.  It runs the following checks:
+
+    - Checks for columns required by your chosen Atlas; details which ones are missing, if any
+    - Checks for column names that are not EventCore or DarwinCore compliant
+    - Checks for a column denoting unique identifiers for each occurrence
+    - Checks whether values in required columns are valid
 
     Parameters
     -----------
@@ -255,6 +258,8 @@ def validate_media_extension(dataframe: DataFrame, data_type: str) -> MMValidati
         # check if all required columns are present
         if len(missing_columns) == 0:
             all_required_columns_present = True
+        else:
+            all_required_columns_present = False
 
         # return report on multimedia
         return MMValidationReport(
@@ -270,7 +275,22 @@ def validate_media_extension(dataframe: DataFrame, data_type: str) -> MMValidati
 
 def validate_emof_extension(dataframe: DataFrame) -> EMOFValidationReport:
     """
-    Validates your eMoF extension.
+    Validates a pandas DataFrame containing multimedia data.  It runs the following checks:
+
+    - Checks for columns required by your chosen Atlas; details which ones are missing, if any
+    - Checks for column names that are not EventCore or DarwinCore compliant
+    - Checks for a column denoting unique identifiers for each occurrence
+    - Checks whether values in required columns are valid
+
+    Parameters
+    -----------
+        dataframe : ``pandas`` DataFrame
+            dataframe to validate for DwC terms
+        
+    Returns
+    --------
+        An object of type ``EMOFValidationReport`` that gives you information about your multimedia dataframe.  
+        This is partly in JSON format and can be parsed by the ``galaxias-python`` package
     """
 
     # first, check for missing columns
@@ -282,6 +302,8 @@ def validate_emof_extension(dataframe: DataFrame) -> EMOFValidationReport:
     # check if all required columns are present
     if len(missing_columns) == 0:
         all_required_columns_present = True
+    else:
+        all_required_columns_present = False
 
     return EMOFValidationReport(
         record_count = len(dataframe),
@@ -319,9 +341,20 @@ def validate_required_fields(dataframe: DataFrame, required_fields) -> pd.Series
     # Return count for each column
     return required_fields_populated_count
 
-def check_for_required_columns(dataframe: DataFrame, required_list: str) -> pd.Series:
+def check_for_required_columns(dataframe: DataFrame, required_list: list) -> pd.Series:
     """
-    Something here.
+    Check to see if your dataframe has all of the columns in the required_list
+
+    Parameters
+    -----------
+        dataframe : pandas DataFrame
+            the dataframe you want to validate
+        required_list : list
+            a list of fields required by the DwCA standard and/or the chosen submission atlas
+
+    Returns
+    --------
+        ``list`` denoting the missing required columns (empty if they are all present).
     """
 
     if any(map(lambda v: v in required_list, list(dataframe.columns))):
@@ -515,6 +548,8 @@ def validate_numeric_fields(dataframe: DataFrame):
         'day',
         'startDayOfYear',
         'endDayOfYear']
+    
+    valid_numeric_fields={x: None for x in numeric_fields}
 
     for field in numeric_fields:
         if field in dataframe.columns:
@@ -527,12 +562,9 @@ def validate_numeric_fields(dataframe: DataFrame):
                 x) or pd.api.types.is_float(x) or pd.api.types.is_integer(x))
 
             # Return True if all values are numeric or empty, False otherwise
-            is_valid = is_numeric_or_empty.all()
+            valid_numeric_fields[field] = is_numeric_or_empty.all()
 
-            if not is_valid:
-                add_warnings("Non-numeric values found in field: {}".format(field))
-
-    return None
+    return valid_numeric_fields
 
 def create_taxonomy_report(dataframe: DataFrame,
                            num_matches: int = 5,
@@ -650,7 +682,7 @@ def create_taxonomy_report(dataframe: DataFrame,
 
 def create_datetime_report(dataframe: DataFrame):
     """
-    Something here
+    Checks if your dates in your dataframe are in valid format (``YYYY-MM-DD`` or ``iso``).
 
     Parameters
     ----------
@@ -705,6 +737,19 @@ def create_datetime_report(dataframe: DataFrame):
     )
 
 def validate_dwc_terms(dataframe: DataFrame):
+    """
+    Checks if your column names are all valid Darwin Core terms
+
+    Parameters
+    ----------
+        dataframe : `pandas` dataframe
+            the data frame to validate
+
+    Returns
+    -------
+        ``list`` containing any column names that are invalid Darwin Core terms.  If all are correct, 
+        it will return an empty list.
+    """
 
     # get list of potential DwC terms from dataframe
     potential_terms = dataframe.columns

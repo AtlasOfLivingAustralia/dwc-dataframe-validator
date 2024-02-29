@@ -39,12 +39,13 @@ required_columns_other_occ = [
     "eventDate"
 ]
 
-### TODO: FIX THIS
-required_columns_other_event = [
+required_columns_event = [
     "basisOfRecord",
     "scientificName",
     "eventDate",
-    "eventID"
+    "eventID",
+    "Event",
+    "parentEventID"
 ]
 
 # Vocabulary for Darwin Core term "basisOfRecord"
@@ -72,7 +73,6 @@ required_multimedia_columns_event = [
 
 required_emof_columns_event = [
     "eventID",
-    "occurrenceID",
     "measurementID",
     "measurementType",
     "measurementValue",
