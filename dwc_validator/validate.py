@@ -12,7 +12,7 @@ from pandas import DataFrame
 from dwc_validator.breakdown import field_populated_counts
 from dwc_validator.model import DFValidationReport, CoordinatesReport, VocabularyReport, TaxonReport
 from dwc_validator.model import MMValidationReport,EMOFValidationReport,DateTimeReport,EventValidationReport
-from dwc_validator.vocab import basis_of_record_vocabulary, geodetic_datum_vocabulary, taxon_terms, unique_id_vocab,
+from dwc_validator.vocab import basis_of_record_vocabulary, geodetic_datum_vocabulary, taxon_terms, unique_id_vocab
 from dwc_validator.vocab import required_columns_spatial_vocab,required_columns_other_occ,required_emof_columns_event
 from dwc_validator.vocab import required_taxonomy_columns,required_multimedia_columns_occ,required_multimedia_columns_event
 from dwc_validator.vocab import required_columns_event
