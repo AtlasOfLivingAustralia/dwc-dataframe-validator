@@ -40,12 +40,11 @@ required_columns_other_occ = [
 ]
 
 required_columns_event = [
-    "basisOfRecord",
-    "scientificName",
     "eventDate",
+    "parentEventID",
     "eventID",
     "Event",
-    "parentEventID"
+    "samplingProtocol"
 ]
 
 # Vocabulary for Darwin Core term "basisOfRecord"

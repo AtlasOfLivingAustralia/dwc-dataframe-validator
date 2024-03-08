@@ -186,17 +186,18 @@ def validate_event_dataframe(dataframe: DataFrame) -> EventValidationReport:
         in JSON format and can be parse by the ``galaxias-python`` package
     """
 
+    # declare variable for required columns presence
+    all_required_columns_present = False
+
     # check eventID field is fully populated
     record_error_count = check_id_fields(id_fields = ["eventID"], dataframe=dataframe)
 
     # check for required columns
     missing_columns = check_for_required_columns(dataframe=dataframe,required_list=required_columns_event)
-
+    
     # check if there are any missing columns and assign boolean as appropriate
-    if len(missing_columns) > 0:
+    if len(missing_columns) == 0:
         all_required_columns_present = True
-    else:
-        all_required_columns_present = False
 
     # check for incorrect dwc terms
     incorrect_dwc_terms = validate_dwc_terms(dataframe=dataframe)
@@ -717,11 +718,25 @@ def create_datetime_report(dataframe: DataFrame):
         else:
             if datatypes[0] == str:
                 for row in dataframe['eventDate']:
-                    if '-' in row:
+                    if 'T' in row:
+                        date, time = row.split('T')
+                        # check even first
+                        event_date = date.split('-')
+                        if len(event_date[0]) != 4 or len(event_date[1]) != 2 or len(event_date[2]) != 2:
+                            has_invalid_datetime = True
+                            num_invalid_datetime += 1
+                            continue
+                        time_split = time.split(":")
+                        if len(time_split[0]) != 2 or len(time_split[1]) != 2 or len(time_split[2]) != 2:
+                            has_invalid_datetime = True
+                            num_invalid_datetime += 1
+                            continue
+                    elif '-' in row:
                         event_date = row.split('-')
                         if len(event_date[0]) != 4 or len(event_date[1]) != 2 or len(event_date[2]) != 2:
                             has_invalid_datetime = True
                             num_invalid_datetime += 1
+                    
                     else:
                         has_invalid_datetime = True
                         num_invalid_datetime += 1
