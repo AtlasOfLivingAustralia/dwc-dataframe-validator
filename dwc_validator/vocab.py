@@ -30,7 +30,6 @@ required_columns_spatial_vocab = [
     "decimalLatitude", 
     "decimalLongitude", 
     "geodeticDatum",
-    "coordinateUncertaintyInMeters",
 ]
 
 required_columns_other_occ = [

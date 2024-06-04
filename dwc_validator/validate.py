@@ -9,6 +9,7 @@ import requests
 import json
 import pandas as pd
 from pandas import DataFrame
+import zipfile
 from dwc_validator.breakdown import field_populated_counts
 from dwc_validator.model import DFValidationReport, CoordinatesReport, VocabularyReport, TaxonReport
 from dwc_validator.model import MMValidationReport,EMOFValidationReport,DateTimeReport,EventValidationReport
