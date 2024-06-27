@@ -1,6 +1,7 @@
 # potentially import things here
-from .validate import *
+# from .validate import *
 from .validate_dwca import *
+# maybe add other things here
 
 #-------------------------------------------------------
 # version

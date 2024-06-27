@@ -179,7 +179,8 @@ class DwCAValidationReport:
                  dataset_type: str,
                  core_validation_report: DFValidationReport,
                  extension_validation_reports: List[DFValidationReport],
-                 breakdowns: []):
+                 breakdowns: [],
+                 errors: []):
         self.valid = valid
         self.core_type = core_type  # URI of the core type
         self.dataset_type = dataset_type  # "Occurrence" or "Event"
@@ -188,3 +189,4 @@ class DwCAValidationReport:
         self.extensions = extension_validation_reports
         # Consolidated list of breakdowns of the dataframe(s)
         self.breakdowns = breakdowns
+        self.errors = errors
