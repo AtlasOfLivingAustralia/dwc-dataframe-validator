@@ -1,7 +1,7 @@
 from pandas import DataFrame
 from .model import DateTimeReport
 
-def create_datetime_report(dataframe: DataFrame):
+def create_datetime_report(dataframe: DataFrame) -> dict:
     """
     Checks if your dates in your dataframe are in valid format (``YYYY-MM-DD`` or ``iso``).
 

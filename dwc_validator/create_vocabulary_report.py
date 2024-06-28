@@ -7,7 +7,7 @@ from .model import VocabularyReport
 def create_vocabulary_report(
         dataframe: DataFrame,
         field: str,
-        controlled_vocabulary: List[str]) -> VocabularyReport:
+        controlled_vocabulary: List[str]) -> dict:
     """
     Count the number of records with a case-insensitive value in the specified field matching a controlled vocabulary.
 
@@ -57,10 +57,10 @@ def create_vocabulary_report(
             non_matching = []
 
     # Return a vocabulary report on the column
-    return VocabularyReport(
-        field=field,
-        has_field=True,
-        recognised_count=int(matching_records_count),
-        unrecognised_count=int(len(dataframe) - (not_populated_count + matching_records_count)),
-        non_matching_values=non_matching
-    )
+    return {
+        "field": field,
+        "has_field": True,
+        "recognised_count": int(matching_records_count),
+        "unrecognised_count": int(len(dataframe) - (not_populated_count + matching_records_count)),
+        "non_matching_values": non_matching
+    }

@@ -2,10 +2,14 @@ import pandas as pd
 from pandas import DataFrame
 from .check_for_required_columns import check_for_required_columns
 from .check_id_fields import check_id_fields
-from .model import EventValidationReport
 from .vocab import required_columns_event
+from .validate_required_fields import validate_required_fields
+from .validate_dwc_terms import validate_dwc_terms
+from .create_datetime_report import create_datetime_report
+from .validate_numeric_fields import validate_numeric_fields
+from .breakdown import field_populated_counts
 
-def validate_event_dataframe(dataframe: DataFrame) -> EventValidationReport:
+def validate_event_dataframe(dataframe: DataFrame) -> dict:
     """
     Validates a pandas DataFrame containing event data.  It runs the following checks:
 
@@ -52,14 +56,14 @@ def validate_event_dataframe(dataframe: DataFrame) -> EventValidationReport:
     # create a report on the datetime
     datetime_report = create_datetime_report(dataframe=dataframe)
 
-    return EventValidationReport(
-        record_type="Event",
-        record_count=len(dataframe),
-        record_error_count=int(record_error_count),
-        all_required_columns_present=all_required_columns_present,
-        missing_columns=missing_columns,
-        records_with_temporal_count=int(valid_temporal_count),
-        column_counts=field_populated_counts(dataframe),
-        datetime_report=datetime_report,
-        incorrect_dwc_terms=incorrect_dwc_terms
-    )
+    return {
+        "record_type": "Event",
+        "record_count": len(dataframe),
+        "record_error_count": int(record_error_count),
+        "all_required_columns_present": all_required_columns_present,
+        "missing_columns": missing_columns,
+        "records_with_temporal_count": int(valid_temporal_count),
+        "column_counts": field_populated_counts(dataframe),
+        "datetime_report": datetime_report,
+        "incorrect_dwc_terms": incorrect_dwc_terms
+    }

@@ -8,7 +8,7 @@ from .validate_required_fields import validate_required_fields
 def create_taxonomy_report(dataframe: DataFrame,
                            num_matches: int = 5,
                            include_synonyms: bool = True,
-                           ) -> TaxonReport:
+                           ) -> dict:
     """
     Check if the given taxon in a data frame are valid for chosen atlas backbone.
 

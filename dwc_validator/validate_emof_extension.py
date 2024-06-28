@@ -5,7 +5,7 @@ from .validate_dwc_terms import validate_dwc_terms
 from .vocab import required_emof_columns_event
 from .breakdown import field_populated_counts
 
-def validate_emof_extension(dataframe: DataFrame) -> EMOFValidationReport:
+def validate_emof_extension(dataframe: DataFrame) -> dict:
     """
     Validates a pandas DataFrame containing multimedia data.  It runs the following checks:
 
@@ -37,10 +37,10 @@ def validate_emof_extension(dataframe: DataFrame) -> EMOFValidationReport:
     else:
         all_required_columns_present = False
 
-    return EMOFValidationReport(
-        record_count = len(dataframe),
-        missing_columns = missing_columns,
-        column_counts = field_populated_counts(dataframe=dataframe),
-        incorrect_dwc_terms = incorrect_dwc_terms,
-        all_required_columns_present=all_required_columns_present
-    )
+    return {
+        "record_count": len(dataframe),
+        "missing_columns": missing_columns,
+        "column_counts": field_populated_counts(dataframe=dataframe),
+        "incorrect_dwc_terms": incorrect_dwc_terms,
+        "all_required_columns_present": all_required_columns_present
+    }

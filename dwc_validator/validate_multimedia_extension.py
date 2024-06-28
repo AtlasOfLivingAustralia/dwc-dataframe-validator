@@ -5,7 +5,7 @@ from .validate_dwc_terms import validate_dwc_terms
 from .vocab import required_multimedia_columns_event,required_multimedia_columns_occ
 from .breakdown import field_populated_counts
 
-def validate_media_extension(dataframe: DataFrame, data_type: str) -> MMValidationReport:
+def validate_media_extension(dataframe: DataFrame, data_type: str) -> dict:
     """
     Validates a pandas DataFrame containing multimedia data.  It runs the following checks:
 
@@ -45,13 +45,13 @@ def validate_media_extension(dataframe: DataFrame, data_type: str) -> MMValidati
             all_required_columns_present = False
 
         # return report on multimedia
-        return MMValidationReport(
-            missing_columns=missing_columns,
-            incorrect_dwc_terms = incorrect_dwc_terms,
-            record_count=len(dataframe),
-            column_counts=field_populated_counts(dataframe=dataframe),
-            all_required_columns_present=all_required_columns_present
-        )
+        return {
+            "missing_columns": missing_columns,
+            "incorrect_dwc_terms": incorrect_dwc_terms,
+            "record_count": len(dataframe),
+            "column_counts": field_populated_counts(dataframe=dataframe),
+            "all_required_columns_present": all_required_columns_present
+        }
     
     else:
         raise ValueError("Please provide either \"event\" or \"occurrence\" for your data type.")

@@ -3,7 +3,7 @@ from pandas import DataFrame
 from .model import CoordinatesReport
 
 def generate_coordinates_report(
-        dataframe: DataFrame) -> CoordinatesReport:
+        dataframe: DataFrame) -> dict:
     """
     Check that 'decimalLatitude' and 'decimalLongitude' columns are the correct format and between
     -90\N{DEGREE SIGN} and 90\N{DEGREE SIGN} for latitude, and -180\N{DEGREE SIGN} and 180\N{DEGREE SIGN} 

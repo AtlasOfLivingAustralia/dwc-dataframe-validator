@@ -1,7 +1,7 @@
 import pandas as pd
 from pandas import DataFrame
 
-def validate_dwc_terms(dataframe: DataFrame):
+def validate_dwc_terms(dataframe: DataFrame) -> list:
     """
     Checks if your column names are all valid Darwin Core terms
 
