@@ -155,9 +155,9 @@ def validate_occurrence_dataframe(
         "missing_columns": missing_columns,
         "column_counts": field_populated_counts(dataframe),
         "records_with_temporal_count": str(valid_temporal_count['eventDate']),
-        # "coordinates_report": coordinates_report,
-        # "taxonomy_report": taxonomy_report,
+        "coordinates_report": coordinates_report,
+        "taxonomy_report": taxonomy_report,
         # "vocab_reports": vocabs_reports,
-        # "datetime_report": datetime_report,
-        # "incorrect_dwc_terms": incorrect_dwc_terms
+        "datetime_report": datetime_report,
+        "incorrect_dwc_terms": incorrect_dwc_terms
     }

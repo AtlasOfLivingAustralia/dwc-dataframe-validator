@@ -1,4 +1,5 @@
 import requests
+import json
 from pandas import DataFrame
 from .model import TaxonReport
 from .vocab import taxon_terms,required_taxonomy_columns
@@ -112,8 +113,8 @@ def create_taxonomy_report(dataframe: DataFrame,
         valid_taxon_count = 0
 
     # return report on taxon
-    return TaxonReport(
-        has_invalid_taxa = has_invalid_taxa,
-        unrecognised_taxa = invalid_taxon_dict,
-        valid_taxon_count = valid_taxon_count
-    )
+    return {
+        "has_invalid_taxa": has_invalid_taxa,
+        "unrecognised_taxa": invalid_taxon_dict,
+        "valid_taxon_count": valid_taxon_count
+    }

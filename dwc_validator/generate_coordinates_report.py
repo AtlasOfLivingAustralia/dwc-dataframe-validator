@@ -41,8 +41,8 @@ def generate_coordinates_report(
 
     # add to warnings
     # add_warnings("INVALID_OR_OUT_OF_RANGE_COORDINATES")
-    return CoordinatesReport(
-        True,
-        int(lat_column_non_empty_count - lat_valid_count),
-        int(lon_column_non_empty_count - lon_valid_count)
-    )
+    return {
+        "has_coordinates_fields": True,
+        "invalid_decimal_latitude_count": int(lat_column_non_empty_count - lat_valid_count),
+        "invalid_decimal_longitude_count": int(lon_column_non_empty_count - lon_valid_count)
+    }

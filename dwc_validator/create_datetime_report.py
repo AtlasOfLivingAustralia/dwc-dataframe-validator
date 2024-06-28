@@ -66,7 +66,7 @@ def create_datetime_report(dataframe: DataFrame):
                 num_invalid_datetime = dataframe.shape[0]
 
     # figure out a way to test for iso type
-    return DateTimeReport(
-        has_invalid_datetime=has_invalid_datetime,
-        num_invalid_datetime=num_invalid_datetime
-    )
+    return {
+        "has_invalid_datetime": has_invalid_datetime,
+        "num_invalid_datetime": num_invalid_datetime
+    }
