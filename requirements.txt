@@ -1,5 +1,6 @@
 jsonpickle==3.0.2
 pandas~=2.0.3
+numpy==1.26.4
 geopandas~=0.13.2
 matplotlib~=3.8.1
 setuptools==70.0.0
