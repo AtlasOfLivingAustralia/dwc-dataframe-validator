@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name='dwc-dataframe-validator',
-    version='0.1.0',
+    version='0.1.1',
     author='Dave Martin',
     author_email='djtfmartin@gmail.com',
     packages=['dwc_validator'],
@@ -17,6 +17,7 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: Implementation :: PyPy',
     ]
 )

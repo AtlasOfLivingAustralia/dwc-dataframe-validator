@@ -230,25 +230,25 @@ def check_id_fields(
         elif field in dataframe.columns:
             id_field_series = dataframe[field]
         else:
-            errors.append("MISSING_ID_FIELD")
+            errors.append(f"MISSING_{field.upper()}_FIELD")
             logging.error(
                 "The %s field is not present in the core file.", field)
             return len(dataframe)
 
         if id_field_series.notnull().all():
-            logging.info("The occurrenceID field is populated for all rows.")
+            logging.info("The %s field is populated for all rows.", field)
 
             if len(id_fields) == 1:
                 if id_field_series.nunique() == dataframe.shape[0]:
                     logging.info(
                         "The %s has unique values for all rows.", field)
                 else:
-                    errors.append("DUPLICATE_ID_FIELD_VALUES")
+                    errors.append(f"DUPLICATE_{field.upper()}_VALUES")
                     logging.error(
                         "The %s field does not have unique values for all rows.", field)
                     return id_field_series.duplicated().sum()
         else:
-            errors.append("MISSING_ID_FIELD_VALUES")
+            errors.append(f"MISSING_{field.upper()}_FIELD_VALUES")
             logging.error("The %s field is not populated for all rows.", field)
             return id_field_series.isna().sum()
 

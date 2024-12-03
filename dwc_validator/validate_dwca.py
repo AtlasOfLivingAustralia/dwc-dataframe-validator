@@ -28,7 +28,6 @@ def validate_archive(
     core_df = dwca.pd_read(core_file_location, parse_dates=False)
     logging.info("Core record count: %s", len(core_df))
 
-    errors = []
     extension_validation_reports = []
     breakdowns = {}
     core_type = dwca.descriptor.core.type
@@ -90,7 +89,7 @@ def validate_archive(
                 breakdowns.update(generate_breakdowns(occ_df))
 
     return DwCAValidationReport(
-        len(errors) == 0,
+        len(df_validation_report.errors) == 0,
         core_type=core_type,
         dataset_type=dataset_type,
         core_validation_report=df_validation_report,
